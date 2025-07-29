@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavigationBar } from "@/components/ui/navigation-bar";
 import { FilterSection } from "@/components/ui/filter-section";
 import { HostelCard } from "@/components/ui/hostel-card";
@@ -5,48 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, Star, Users, Shield, Clock, ArrowRight } from "lucide-react";
-import heroImage from "@/assets/unilodge-hero.jpg";
+import campusHeroBg from "@/assets/campus-hero-bg.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  // Sample data - in real app this would come from your Supabase database
-  const sampleHostels = [
-    {
-      id: "1",
-      name: "AAMUSTED Student Lodge",
-      location: "Near Main Campus Gate",
-      price: 1200,
-      rating: 4.8,
-      reviews: 156,
-      images: ["/placeholder.svg"],
-      amenities: ["WiFi", "Security", "Common Room", "Kitchen"],
-      roomsAvailable: 12,
-      distance: "0.2km from campus"
-    },
-    {
-      id: "2", 
-      name: "University Heights Hostel",
-      location: "Sunyani Campus Area",
-      price: 950,
-      rating: 4.5,
-      reviews: 89,
-      images: ["/placeholder.svg"],
-      amenities: ["WiFi", "Parking", "Laundry", "Study Room"],
-      roomsAvailable: 8,
-      distance: "0.5km from campus"
-    },
-    {
-      id: "3",
-      name: "Campus View Residence",
-      location: "Behind Library Complex",
-      price: 1400,
-      rating: 4.9,
-      reviews: 203,
-      images: ["/placeholder.svg"],
-      amenities: ["WiFi", "AC", "Generator", "Security"],
-      roomsAvailable: 5,
-      distance: "0.1km from campus"
-    }
-  ];
+  const [hostels, setHostels] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHostels = async () => {
+      const { data, error } = await supabase
+        .from('hostels')
+        .select('*')
+        .eq('is_active', true)
+        .order('rating', { ascending: false });
+      
+      if (data) {
+        setHostels(data);
+      }
+      setLoading(false);
+    };
+
+    fetchHostels();
+  }, []);
 
   const features = [
     {
@@ -79,7 +61,7 @@ const Index = () => {
       <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroImage})` }}
+          style={{ backgroundImage: `url(${campusHeroBg})` }}
         >
           <div className="absolute inset-0 bg-gradient-hero opacity-80"></div>
         </div>
@@ -161,7 +143,7 @@ const Index = () => {
                 Available Hostels
               </h2>
               <p className="text-muted-foreground">
-                {sampleHostels.length} hostels found near AAMUSTED campus
+                {hostels.length} hostels found near AAMUSTED campus
               </p>
             </div>
             <Button variant="outline" className="hidden md:flex">
@@ -172,9 +154,13 @@ const Index = () => {
           <FilterSection />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            {sampleHostels.map((hostel) => (
-              <HostelCard key={hostel.id} {...hostel} />
-            ))}
+            {loading ? (
+              <div className="col-span-full text-center py-8">Loading hostels...</div>
+            ) : (
+              hostels.map((hostel) => (
+                <HostelCard key={hostel.id} {...hostel} />
+              ))
+            )}
           </div>
 
           {/* Load More */}

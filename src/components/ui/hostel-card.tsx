@@ -3,34 +3,32 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin, Star, Wifi, Car, Users, Phone } from "lucide-react";
 import { useState } from "react";
+import { HostelDetailDialog } from "@/components/ui/hostel-detail-dialog";
 
 interface HostelCardProps {
   id: string;
   name: string;
+  description?: string;
   location: string;
-  price: number;
+  detailed_address?: string;
+  price_per_semester: number;
+  price_per_month?: number;
   rating: number;
-  reviews: number;
-  images: string[];
+  total_reviews: number;
+  rooms_available: number;
+  total_rooms?: number;
+  distance_from_campus?: string;
   amenities: string[];
-  roomsAvailable: number;
-  distance: string;
+  contact_name?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  contact_whatsapp?: string;
   isFavorited?: boolean;
 }
 
-export const HostelCard = ({
-  name,
-  location,
-  price,
-  rating,
-  reviews,
-  images,
-  amenities,
-  roomsAvailable,
-  distance,
-  isFavorited = false
-}: HostelCardProps) => {
-  const [favorited, setFavorited] = useState(isFavorited);
+export const HostelCard = (hostel: HostelCardProps) => {
+  const [favorited, setFavorited] = useState(hostel.isFavorited || false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const getAmenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
@@ -41,48 +39,59 @@ export const HostelCard = ({
     }
   };
 
+  const handleContact = () => {
+    if (hostel.contact_whatsapp) {
+      window.open(`https://wa.me/${hostel.contact_whatsapp.replace(/\D/g, '')}`);
+    } else if (hostel.contact_phone) {
+      window.open(`tel:${hostel.contact_phone}`);
+    } else if (hostel.contact_email) {
+      window.open(`mailto:${hostel.contact_email}`);
+    }
+  };
+
   return (
-    <Card className="group overflow-hidden hover:shadow-primary transition-all duration-300 border-border">
-      {/* Image Section */}
-      <div className="relative">
-        <img 
-          src={images[0] || "/placeholder.svg"} 
-          alt={name}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={`absolute top-3 right-3 rounded-full ${favorited ? 'text-red-500' : 'text-white'} hover:bg-white/20`}
-          onClick={() => setFavorited(!favorited)}
-        >
-          <Heart className={`h-4 w-4 ${favorited ? 'fill-current' : ''}`} />
-        </Button>
-        <Badge 
-          variant="secondary" 
-          className="absolute top-3 left-3 bg-secondary text-secondary-foreground"
-        >
-          {roomsAvailable} rooms available
-        </Badge>
-      </div>
+    <>
+      <Card className="group overflow-hidden hover:shadow-primary transition-all duration-300 border-border">
+        {/* Image Section */}
+        <div className="relative">
+          <img 
+            src="/placeholder.svg" 
+            alt={hostel.name}
+            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={`absolute top-3 right-3 rounded-full ${favorited ? 'text-red-500' : 'text-white'} hover:bg-white/20`}
+            onClick={() => setFavorited(!favorited)}
+          >
+            <Heart className={`h-4 w-4 ${favorited ? 'fill-current' : ''}`} />
+          </Button>
+          <Badge 
+            variant="secondary" 
+            className="absolute top-3 left-3 bg-secondary text-secondary-foreground"
+          >
+            {hostel.rooms_available} rooms available
+          </Badge>
+        </div>
 
       {/* Content Section */}
       <div className="p-4 space-y-3">
         {/* Header */}
         <div className="space-y-1">
           <div className="flex items-start justify-between">
-            <h3 className="font-semibold text-lg text-card-foreground line-clamp-1">{name}</h3>
+            <h3 className="font-semibold text-lg text-card-foreground line-clamp-1">{hostel.name}</h3>
             <div className="text-right">
-              <div className="text-xl font-bold text-primary">₵{price}</div>
+              <div className="text-xl font-bold text-primary">₵{hostel.price_per_semester}</div>
               <div className="text-xs text-muted-foreground">per semester</div>
             </div>
           </div>
           
           <div className="flex items-center text-sm text-muted-foreground">
             <MapPin className="h-3 w-3 mr-1" />
-            <span className="line-clamp-1">{location}</span>
+            <span className="line-clamp-1">{hostel.location}</span>
             <span className="mx-2">•</span>
-            <span>{distance}</span>
+            <span>{hostel.distance_from_campus}</span>
           </div>
         </div>
 
@@ -90,21 +99,21 @@ export const HostelCard = ({
         <div className="flex items-center space-x-2">
           <div className="flex items-center">
             <Star className="h-4 w-4 text-secondary fill-current" />
-            <span className="ml-1 font-medium text-sm">{rating}</span>
+            <span className="ml-1 font-medium text-sm">{hostel.rating}</span>
           </div>
-          <span className="text-sm text-muted-foreground">({reviews} reviews)</span>
+          <span className="text-sm text-muted-foreground">({hostel.total_reviews} reviews)</span>
         </div>
 
         {/* Amenities */}
         <div className="flex items-center space-x-3">
-          {amenities.slice(0, 3).map((amenity, index) => (
+          {hostel.amenities.slice(0, 3).map((amenity, index) => (
             <div key={index} className="flex items-center text-xs text-muted-foreground">
               {getAmenityIcon(amenity)}
               <span className="ml-1">{amenity}</span>
             </div>
           ))}
-          {amenities.length > 3 && (
-            <span className="text-xs text-muted-foreground">+{amenities.length - 3} more</span>
+          {hostel.amenities.length > 3 && (
+            <span className="text-xs text-muted-foreground">+{hostel.amenities.length - 3} more</span>
           )}
         </div>
 
@@ -114,6 +123,7 @@ export const HostelCard = ({
             variant="outline" 
             size="sm" 
             className="flex-1"
+            onClick={handleContact}
           >
             <Phone className="h-3 w-3 mr-2" />
             Contact
@@ -121,11 +131,19 @@ export const HostelCard = ({
           <Button 
             className="flex-1 bg-gradient-primary hover:opacity-90"
             size="sm"
+            onClick={() => setShowDetails(true)}
           >
             View Details
           </Button>
         </div>
       </div>
     </Card>
+    
+    <HostelDetailDialog 
+      hostel={hostel}
+      open={showDetails}
+      onOpenChange={setShowDetails}
+    />
+  </>
   );
 };
