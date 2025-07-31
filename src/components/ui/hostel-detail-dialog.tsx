@@ -20,6 +20,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { BookingForm } from '@/components/ui/booking-form';
 import hostelInterior1 from '@/assets/hostel-interior-1.jpg';
 import hostelRoom1 from '@/assets/hostel-room-1.jpg';
 import hostelKitchen1 from '@/assets/hostel-kitchen-1.jpg';
@@ -62,6 +63,7 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
   const { user } = useAuth();
   const { toast } = useToast();
   const [isAddingToFavorites, setIsAddingToFavorites] = useState(false);
+  const [isBookingFormOpen, setIsBookingFormOpen] = useState(false);
 
   const hostelImages = [hostelInterior1, hostelRoom1, hostelKitchen1, hostelStudy1];
 
@@ -230,7 +232,10 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
                 <Heart className="h-4 w-4 mr-2" />
                 {isAddingToFavorites ? 'Adding...' : 'Add to Favorites'}
               </Button>
-              <Button className="flex-1">
+              <Button 
+                className="flex-1"
+                onClick={() => setIsBookingFormOpen(true)}
+              >
                 Book Now
               </Button>
             </div>
@@ -353,6 +358,17 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
           </TabsContent>
         </Tabs>
       </DialogContent>
+      
+      <BookingForm
+        isOpen={isBookingFormOpen}
+        onClose={() => setIsBookingFormOpen(false)}
+        hostel={{
+          id: hostel.id,
+          name: hostel.name,
+          price_per_semester: hostel.price_per_semester,
+          price_per_month: hostel.price_per_month,
+        }}
+      />
     </Dialog>
   );
 }

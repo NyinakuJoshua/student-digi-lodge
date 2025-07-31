@@ -15,6 +15,8 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hostelsPerPage] = useState(6);
 
   useEffect(() => {
     const fetchHostels = async () => {
@@ -64,10 +66,22 @@ const Index = () => {
     }
 
     setFilteredHostels(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [searchQuery, priceRange, hostels]);
 
   const handleSearch = () => {
     // Search is handled by useEffect above
+  };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredHostels.length / hostelsPerPage);
+  const startIndex = (currentPage - 1) * hostelsPerPage;
+  const endIndex = startIndex + hostelsPerPage;
+  const currentHostels = filteredHostels.slice(0, endIndex); // Show all hostels up to current page
+  const hasMoreHostels = endIndex < filteredHostels.length;
+
+  const handleLoadMore = () => {
+    setCurrentPage(prev => prev + 1);
   };
 
   const features = [
@@ -189,7 +203,7 @@ const Index = () => {
                 Available Hostels
               </h2>
               <p className="text-muted-foreground">
-                {filteredHostels.length} of {hostels.length} hostels found near AAMUSTED campus
+                Showing {Math.min(currentHostels.length, filteredHostels.length)} of {filteredHostels.length} hostels found near AAMUSTED campus
                 {searchQuery && ` for "${searchQuery}"`}
               </p>
             </div>
@@ -203,8 +217,8 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {loading ? (
               <div className="col-span-full text-center py-8">Loading hostels...</div>
-            ) : filteredHostels.length > 0 ? (
-              filteredHostels.map((hostel) => (
+            ) : currentHostels.length > 0 ? (
+              currentHostels.map((hostel) => (
                 <HostelCard key={hostel.id} {...hostel} />
               ))
             ) : (
@@ -215,11 +229,17 @@ const Index = () => {
           </div>
 
           {/* Load More */}
-          <div className="text-center mt-12">
-            <Button variant="outline" size="lg">
-              Load More Hostels
-            </Button>
-          </div>
+          {hasMoreHostels && !loading && (
+            <div className="text-center mt-12">
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={handleLoadMore}
+              >
+                Load More Hostels ({filteredHostels.length - currentHostels.length} remaining)
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 

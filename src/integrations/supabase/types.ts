@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          check_in_date: string
+          check_out_date: string | null
+          created_at: string
+          email: string
+          full_name: string
+          hostel_id: string
+          id: string
+          phone: string
+          room_type: string | null
+          special_requests: string | null
+          status: string
+          student_id: string | null
+          total_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_date: string
+          check_out_date?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          hostel_id: string
+          id?: string
+          phone: string
+          room_type?: string | null
+          special_requests?: string | null
+          status?: string
+          student_id?: string | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_date?: string
+          check_out_date?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          hostel_id?: string
+          id?: string
+          phone?: string
+          room_type?: string | null
+          special_requests?: string | null
+          status?: string
+          student_id?: string | null
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
