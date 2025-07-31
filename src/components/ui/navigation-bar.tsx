@@ -14,6 +14,7 @@ import {
 
 export const NavigationBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user, signOut } = useAuth();
 
   return (
@@ -36,6 +37,8 @@ export const NavigationBar = () => {
                 type="text"
                 placeholder="Search hostels by location, price..."
                 className="pl-10 bg-muted border-border"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
               <Button size="sm" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6">
                 <MapPin className="h-3 w-3" />
@@ -112,6 +115,8 @@ export const NavigationBar = () => {
                   type="text"
                   placeholder="Search hostels..."
                   className="pl-10 bg-muted border-border"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               

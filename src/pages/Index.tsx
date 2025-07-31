@@ -11,7 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [hostels, setHostels] = useState<any[]>([]);
+  const [filteredHostels, setFilteredHostels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priceRange, setPriceRange] = useState('');
 
   useEffect(() => {
     const fetchHostels = async () => {
@@ -23,12 +26,49 @@ const Index = () => {
       
       if (data) {
         setHostels(data);
+        setFilteredHostels(data);
       }
       setLoading(false);
     };
 
     fetchHostels();
   }, []);
+
+  // Search and filter functionality
+  useEffect(() => {
+    let filtered = hostels;
+
+    // Apply search query filter
+    if (searchQuery) {
+      filtered = filtered.filter(hostel => 
+        hostel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        hostel.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        hostel.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        hostel.amenities.some((amenity: string) => 
+          amenity.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+    }
+
+    // Apply price range filter
+    if (priceRange) {
+      filtered = filtered.filter(hostel => {
+        const price = hostel.price_per_semester;
+        switch (priceRange) {
+          case '₵500 - ₵1000': return price >= 500 && price <= 1000;
+          case '₵1000 - ₵1500': return price >= 1000 && price <= 1500;
+          case '₵1500+': return price >= 1500;
+          default: return true;
+        }
+      });
+    }
+
+    setFilteredHostels(filtered);
+  }, [searchQuery, priceRange, hostels]);
+
+  const handleSearch = () => {
+    // Search is handled by useEffect above
+  };
 
   const features = [
     {
@@ -84,22 +124,28 @@ const Index = () => {
               <div className="md:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                  <input 
+                   <input 
                     type="text"
                     placeholder="Search by location or hostel name..."
                     className="w-full pl-10 pr-4 py-3 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
               </div>
-              <div>
-                <select className="w-full px-4 py-3 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option>Price Range</option>
-                  <option>₵500 - ₵1000</option>
-                  <option>₵1000 - ₵1500</option>
-                  <option>₵1500+</option>
+               <div>
+                <select 
+                  className="w-full px-4 py-3 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={priceRange}
+                  onChange={(e) => setPriceRange(e.target.value)}
+                >
+                  <option value="">Price Range</option>
+                  <option value="₵500 - ₵1000">₵500 - ₵1000</option>
+                  <option value="₵1000 - ₵1500">₵1000 - ₵1500</option>
+                  <option value="₵1500+">₵1500+</option>
                 </select>
               </div>
-              <Button className="bg-gradient-primary hover:opacity-90 py-3">
+              <Button className="bg-gradient-primary hover:opacity-90 py-3" onClick={handleSearch}>
                 <Search className="h-5 w-5 mr-2" />
                 Search
               </Button>
@@ -143,7 +189,8 @@ const Index = () => {
                 Available Hostels
               </h2>
               <p className="text-muted-foreground">
-                {hostels.length} hostels found near AAMUSTED campus
+                {filteredHostels.length} of {hostels.length} hostels found near AAMUSTED campus
+                {searchQuery && ` for "${searchQuery}"`}
               </p>
             </div>
             <Button variant="outline" className="hidden md:flex">
@@ -156,10 +203,14 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {loading ? (
               <div className="col-span-full text-center py-8">Loading hostels...</div>
-            ) : (
-              hostels.map((hostel) => (
+            ) : filteredHostels.length > 0 ? (
+              filteredHostels.map((hostel) => (
                 <HostelCard key={hostel.id} {...hostel} />
               ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                No hostels found matching your search criteria.
+              </div>
             )}
           </div>
 

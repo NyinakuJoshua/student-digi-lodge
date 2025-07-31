@@ -4,6 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, MapPin, Star, Wifi, Car, Users, Phone } from "lucide-react";
 import { useState } from "react";
 import { HostelDetailDialog } from "@/components/ui/hostel-detail-dialog";
+import campusViewExterior from "@/assets/campus-view-exterior.jpg";
+import studentLodgeExterior from "@/assets/student-lodge-exterior.jpg";
+import royalPalaceExterior from "@/assets/royal-palace-exterior.jpg";
+import universityHeightsExterior from "@/assets/university-heights-exterior.jpg";
+import greenValleyExterior from "@/assets/green-valley-exterior.jpg";
+import harmonyHallExterior from "@/assets/harmony-hall-exterior.jpg";
 
 interface HostelCardProps {
   id: string;
@@ -30,6 +36,18 @@ export const HostelCard = (hostel: HostelCardProps) => {
   const [favorited, setFavorited] = useState(hostel.isFavorited || false);
   const [showDetails, setShowDetails] = useState(false);
 
+  const getHostelImage = (hostelName: string) => {
+    switch (hostelName) {
+      case 'Campus View Residence': return campusViewExterior;
+      case 'AAMUSTED Student Lodge': return studentLodgeExterior;
+      case 'Royal Student Palace': return royalPalaceExterior;
+      case 'University Heights Hostel': return universityHeightsExterior;
+      case 'Green Valley Hostel': return greenValleyExterior;
+      case 'Harmony Hall': return harmonyHallExterior;
+      default: return "/placeholder.svg";
+    }
+  };
+
   const getAmenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
       case 'wifi': return <Wifi className="h-3 w-3" />;
@@ -55,7 +73,7 @@ export const HostelCard = (hostel: HostelCardProps) => {
         {/* Image Section */}
         <div className="relative">
           <img 
-            src="/placeholder.svg" 
+            src={getHostelImage(hostel.name)} 
             alt={hostel.name}
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           />

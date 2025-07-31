@@ -24,6 +24,7 @@ import hostelInterior1 from '@/assets/hostel-interior-1.jpg';
 import hostelRoom1 from '@/assets/hostel-room-1.jpg';
 import hostelKitchen1 from '@/assets/hostel-kitchen-1.jpg';
 import hostelStudy1 from '@/assets/hostel-study-1.jpg';
+import GoogleMap from './google-map';
 
 interface HostelDetailDialogProps {
   hostel: {
@@ -163,10 +164,11 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="gallery">Gallery</TabsTrigger>
             <TabsTrigger value="amenities">Amenities</TabsTrigger>
+            <TabsTrigger value="location">Location</TabsTrigger>
             <TabsTrigger value="contact">Contact</TabsTrigger>
           </TabsList>
 
@@ -261,6 +263,40 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="location">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-4">Location & Map</h3>
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-sm text-muted-foreground">Full Address:</span>
+                    <p className="font-medium">{hostel.detailed_address || hostel.location}</p>
+                  </div>
+                  {hostel.distance_from_campus && (
+                    <div>
+                      <span className="text-sm text-muted-foreground">Distance from AAMUSTED Campus:</span>
+                      <p className="font-medium text-primary">{hostel.distance_from_campus}</p>
+                    </div>
+                  )}
+                  <div className="mt-6">
+                    <GoogleMap 
+                      center={{ lat: 7.3369, lng: -2.3284 }}
+                      zoom={15}
+                      markers={[
+                        {
+                          position: { lat: 7.3369, lng: -2.3284 },
+                          title: hostel.name,
+                          info: `<div><strong>${hostel.name}</strong><br/>${hostel.location}</div>`
+                        }
+                      ]}
+                      className="rounded-lg overflow-hidden"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="contact">
