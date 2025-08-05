@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, Search, MapPin, User, Menu, LogOut } from "lucide-react";
+import { Heart, Search, MapPin, User, Menu, LogOut, Shield } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "react-router-dom";
@@ -52,6 +52,13 @@ export const NavigationBar = () => {
               <Heart className="h-4 w-4 mr-2" />
               Favorites
             </Button>
+            
+            <Link to="/admin/auth">
+              <Button variant="ghost" size="sm">
+                <Shield className="h-4 w-4 mr-2" />
+                Hostel Owner
+              </Button>
+            </Link>
             
             {user ? (
               <DropdownMenu>
@@ -126,6 +133,13 @@ export const NavigationBar = () => {
                   <Heart className="h-4 w-4 mr-2" />
                   Favorites
                 </Button>
+                
+                <Link to="/admin/auth" className="w-full">
+                  <Button variant="ghost" className="justify-start w-full">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Hostel Owner
+                  </Button>
+                </Link>
                 
                 {user ? (
                   <Button variant="ghost" className="justify-start" onClick={signOut}>

@@ -26,6 +26,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Handle role update for hostel owner signup
+        if (event === 'SIGNED_IN' && session?.user?.user_metadata?.role === 'hostel_owner') {
+          setTimeout(async () => {
+            await supabase
+              .from('profiles')
+              .update({ role: 'hostel_owner' })
+              .eq('user_id', session.user.id);
+          }, 1000);
+        }
+        
         setLoading(false);
       }
     );
