@@ -82,6 +82,8 @@ export default function AdminAuth() {
     const password = formData.get('password') as string;
     const fullName = formData.get('fullName') as string;
     const hostelName = formData.get('hostelName') as string;
+    const phone = formData.get('phone') as string;
+    const location = formData.get('location') as string;
     
     const redirectUrl = `${window.location.origin}/admin/dashboard`;
     
@@ -94,6 +96,8 @@ export default function AdminAuth() {
           full_name: fullName,
           role: 'hostel_owner',
           hostel_name: hostelName,
+          phone: phone,
+          hostel_location: location,
         },
       },
     });
