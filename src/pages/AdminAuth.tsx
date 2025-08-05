@@ -219,6 +219,26 @@ export default function AdminAuth() {
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="admin-signup-phone">Phone Number</Label>
+                      <Input
+                        id="admin-signup-phone"
+                        name="phone"
+                        type="tel"
+                        placeholder="Enter your phone number"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="admin-signup-location">Hostel Location</Label>
+                      <Input
+                        id="admin-signup-location"
+                        name="location"
+                        type="text"
+                        placeholder="Enter hostel location"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="admin-signup-email">Email</Label>
                       <Input
                         id="admin-signup-email"
