@@ -21,7 +21,9 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 interface Profile {
   role: string;
 }
@@ -66,6 +68,14 @@ export default function AdminDashboard() {
     totalRevenue: 0,
   });
   const { toast } = useToast();
+  
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [selectedHostel, setSelectedHostel] = useState<Hostel | null>(null);
+  const [contactForm, setContactForm] = useState({
+    contact_name: '',
+    contact_email: '',
+    contact_phone: '',
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -200,6 +210,38 @@ export default function AdminDashboard() {
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const openEditContact = (hostel: Hostel) => {
+    setSelectedHostel(hostel);
+    setContactForm({
+      contact_name: (hostel as any).contact_name || '',
+      contact_email: (hostel as any).contact_email || '',
+      contact_phone: (hostel as any).contact_phone || '',
+    });
+    setContactDialogOpen(true);
+  };
+
+  const saveContactDetails = async () => {
+    if (!selectedHostel) return;
+    const { error } = await supabase
+      .from('hostels')
+      .update({
+        contact_name: contactForm.contact_name,
+        contact_email: contactForm.contact_email,
+        contact_phone: contactForm.contact_phone,
+      })
+      .eq('id', selectedHostel.id);
+
+    if (error) {
+      toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+
+    // Update local state
+    setHostels(prev => prev.map(h => h.id === selectedHostel.id ? { ...h, ...(contactForm as any) } : h));
+    toast({ title: 'Contact updated', description: 'Hostel contact details have been saved.' });
+    setContactDialogOpen(false);
   };
 
   if (!user) {
@@ -459,6 +501,9 @@ export default function AdminDashboard() {
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </Button>
+                          <Button className="w-full mt-2" variant="secondary" onClick={() => openEditContact(hostel)}>
+                            Edit Contact
+                          </Button>
                         </CardContent>
                       </Card>
                     ))}
@@ -467,8 +512,37 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+          </Tabs>
+
+          <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Hostel Contact</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contact_name">Contact Name</Label>
+                  <Input id="contact_name" value={contactForm.contact_name}
+                    onChange={(e) => setContactForm({ ...contactForm, contact_name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact_email">Contact Email</Label>
+                  <Input id="contact_email" type="email" value={contactForm.contact_email}
+                    onChange={(e) => setContactForm({ ...contactForm, contact_email: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact_phone">Contact Phone</Label>
+                  <Input id="contact_phone" value={contactForm.contact_phone}
+                    onChange={(e) => setContactForm({ ...contactForm, contact_phone: e.target.value })} />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setContactDialogOpen(false)}>Cancel</Button>
+                <Button onClick={saveContactDetails}>Save</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-    </div>
-  );
+    );
 }
