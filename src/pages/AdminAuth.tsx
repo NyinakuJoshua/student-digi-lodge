@@ -87,18 +87,24 @@ export default function AdminAuth() {
     
     const redirectUrl = `${window.location.origin}/admin/dashboard`;
     
+    // Build safe metadata (no undefined values in JSON)
+    const rawMeta: Record<string, string | null> = {
+      full_name: fullName?.trim() || null,
+      role: 'hostel_owner',
+      hostel_name: hostelName?.trim() || null,
+      phone: phone?.trim() || null,
+      hostel_location: location?.trim() || null,
+    };
+    const data = Object.fromEntries(
+      Object.entries(rawMeta).filter(([, v]) => v !== undefined && v !== null)
+    ) as Record<string, string>;
+    
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          role: 'hostel_owner',
-          hostel_name: hostelName,
-          phone: phone,
-          hostel_location: location,
-        },
+        data,
       },
     });
     
