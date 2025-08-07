@@ -99,7 +99,7 @@ export default function AdminAuth() {
       Object.entries(rawMeta).filter(([, v]) => v !== undefined && v !== null)
     ) as Record<string, string>;
     
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError, data: authData } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -115,6 +115,25 @@ export default function AdminAuth() {
         variant: "destructive",
       });
     } else {
+      // Save hostel registration data to new table
+      if (authData.user) {
+        const { error: registrationError } = await supabase
+          .from('hostel_registrations')
+          .insert({
+            user_id: authData.user.id,
+            email: email,
+            full_name: fullName,
+            hostel_name: hostelName,
+            phone: phone,
+            hostel_location: location,
+            status: 'approved',
+          });
+        
+        if (registrationError) {
+          console.error('Registration data error:', registrationError);
+        }
+      }
+      
       toast({
         title: "Admin account created!",
         description: "Please check your email to verify your account. Once verified, you can create your hostel listing.",
