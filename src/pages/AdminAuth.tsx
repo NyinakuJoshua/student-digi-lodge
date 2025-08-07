@@ -87,17 +87,13 @@ export default function AdminAuth() {
     
     const redirectUrl = `${window.location.origin}/admin/dashboard`;
     
-    // Build safe metadata (no undefined values in JSON)
-    const rawMeta: Record<string, string | null> = {
-      full_name: fullName?.trim() || null,
-      role: 'hostel_owner',
-      hostel_name: hostelName?.trim() || null,
-      phone: phone?.trim() || null,
-      hostel_location: location?.trim() || null,
-    };
-    const data = Object.fromEntries(
-      Object.entries(rawMeta).filter(([, v]) => v !== undefined && v !== null)
-    ) as Record<string, string>;
+    // Build metadata for the trigger function (only non-empty values)
+    const metadata: Record<string, string> = {};
+    if (fullName?.trim()) metadata.full_name = fullName.trim();
+    if (phone?.trim()) metadata.phone = phone.trim();
+    if (hostelName?.trim()) metadata.hostel_name = hostelName.trim();
+    if (location?.trim()) metadata.hostel_location = location.trim();
+    metadata.role = 'hostel_owner';
     
     try {
       const { error: signUpError, data: authData } = await supabase.auth.signUp({
@@ -105,7 +101,7 @@ export default function AdminAuth() {
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data,
+          data: metadata,
         },
       });
       
@@ -119,33 +115,12 @@ export default function AdminAuth() {
         return;
       }
 
-      // Save hostel registration data to new table
-      if (authData.user) {
-        const { error: registrationError } = await supabase
-          .from('hostel_registrations')
-          .insert({
-            user_id: authData.user.id,
-            email: email,
-            full_name: fullName,
-            hostel_name: hostelName,
-            phone: phone,
-            hostel_location: location,
-            status: 'approved',
-          });
-        
-        if (registrationError) {
-          console.error('Registration data error:', registrationError);
-          toast({
-            title: "Registration saved with issues",
-            description: "Account created but registration data couldn't be saved. Please contact support.",
-            variant: "destructive",
-          });
-        }
-      }
+      // The trigger function automatically creates the profile and hostel entries
+      // No need to manually insert into hostel_registrations here
       
       toast({
-        title: "Admin account created!",
-        description: "Please check your email to verify your account. Once verified, you can create your hostel listing.",
+        title: "Hostel registration successful!",
+        description: "Please check your email to verify your account. Once verified, you can access your admin dashboard.",
       });
     } catch (error) {
       console.error('Network error during signup:', error);

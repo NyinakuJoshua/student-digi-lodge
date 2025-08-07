@@ -271,36 +271,6 @@ export type Database = {
         }
         Relationships: []
       }
-      Register_Hostel: {
-        Row: {
-          Email: string | null
-          Full_Name: string
-          Hostel_Location: string | null
-          Hostel_Name: string | null
-          id: number
-          Password: string | null
-          Phone_Number: string | null
-        }
-        Insert: {
-          Email?: string | null
-          Full_Name: string
-          Hostel_Location?: string | null
-          Hostel_Name?: string | null
-          id?: number
-          Password?: string | null
-          Phone_Number?: string | null
-        }
-        Update: {
-          Email?: string | null
-          Full_Name?: string
-          Hostel_Location?: string | null
-          Hostel_Name?: string | null
-          id?: number
-          Password?: string | null
-          Phone_Number?: string | null
-        }
-        Relationships: []
-      }
       reviews: {
         Row: {
           comment: string | null
