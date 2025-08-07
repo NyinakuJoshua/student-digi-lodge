@@ -99,22 +99,26 @@ export default function AdminAuth() {
       Object.entries(rawMeta).filter(([, v]) => v !== undefined && v !== null)
     ) as Record<string, string>;
     
-    const { error: signUpError, data: authData } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data,
-      },
-    });
-    
-    if (signUpError) {
-      toast({
-        title: "Sign up failed",
-        description: signUpError.message,
-        variant: "destructive",
+    try {
+      const { error: signUpError, data: authData } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data,
+        },
       });
-    } else {
+      
+      if (signUpError) {
+        toast({
+          title: "Sign up failed",
+          description: signUpError.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       // Save hostel registration data to new table
       if (authData.user) {
         const { error: registrationError } = await supabase
@@ -131,12 +135,24 @@ export default function AdminAuth() {
         
         if (registrationError) {
           console.error('Registration data error:', registrationError);
+          toast({
+            title: "Registration saved with issues",
+            description: "Account created but registration data couldn't be saved. Please contact support.",
+            variant: "destructive",
+          });
         }
       }
       
       toast({
         title: "Admin account created!",
         description: "Please check your email to verify your account. Once verified, you can create your hostel listing.",
+      });
+    } catch (error) {
+      console.error('Network error during signup:', error);
+      toast({
+        title: "Network error",
+        description: "Failed to connect to the server. Please check your internet connection and try again.",
+        variant: "destructive",
       });
     }
     
