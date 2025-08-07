@@ -104,6 +104,48 @@ export type Database = {
           },
         ]
       }
+      hostel_registrations: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          hostel_location: string | null
+          hostel_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          hostel_location?: string | null
+          hostel_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          hostel_location?: string | null
+          hostel_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hostels: {
         Row: {
           amenities: string[] | null
@@ -226,6 +268,36 @@ export type Database = {
           university?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      Register_Hostel: {
+        Row: {
+          Email: string | null
+          Full_Name: string
+          Hostel_Location: string | null
+          Hostel_Name: string | null
+          id: number
+          Password: string | null
+          Phone_Number: string | null
+        }
+        Insert: {
+          Email?: string | null
+          Full_Name: string
+          Hostel_Location?: string | null
+          Hostel_Name?: string | null
+          id?: number
+          Password?: string | null
+          Phone_Number?: string | null
+        }
+        Update: {
+          Email?: string | null
+          Full_Name?: string
+          Hostel_Location?: string | null
+          Hostel_Name?: string | null
+          id?: number
+          Password?: string | null
+          Phone_Number?: string | null
         }
         Relationships: []
       }
