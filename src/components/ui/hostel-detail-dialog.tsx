@@ -25,6 +25,12 @@ import hostelInterior1 from '@/assets/hostel-interior-1.jpg';
 import hostelRoom1 from '@/assets/hostel-room-1.jpg';
 import hostelKitchen1 from '@/assets/hostel-kitchen-1.jpg';
 import hostelStudy1 from '@/assets/hostel-study-1.jpg';
+// Import new interior images
+import hostelInteriorBedroom1 from '@/assets/hostel-interior-bedroom-1.jpg';
+import hostelInteriorKitchen2 from '@/assets/hostel-interior-kitchen-2.jpg';
+import hostelInteriorStudy2 from '@/assets/hostel-interior-study-2.jpg';
+import hostelInteriorLounge1 from '@/assets/hostel-interior-lounge-1.jpg';
+import hostelInteriorBathroom1 from '@/assets/hostel-interior-bathroom-1.jpg';
 import GoogleMap from './google-map';
 
 interface HostelDetailDialogProps {
@@ -65,7 +71,17 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
   const [isAddingToFavorites, setIsAddingToFavorites] = useState(false);
   const [isBookingFormOpen, setIsBookingFormOpen] = useState(false);
 
-  const hostelImages = [hostelInterior1, hostelRoom1, hostelKitchen1, hostelStudy1];
+  const hostelImages = [
+    hostelInterior1, 
+    hostelRoom1, 
+    hostelKitchen1, 
+    hostelStudy1,
+    hostelInteriorBedroom1,
+    hostelInteriorKitchen2,
+    hostelInteriorStudy2,
+    hostelInteriorLounge1,
+    hostelInteriorBathroom1
+  ];
 
   const handleAddToFavorites = async () => {
     if (!user) {
@@ -122,6 +138,21 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
     } finally {
       setIsAddingToFavorites(false);
     }
+  };
+
+  const getImageDescription = (index: number) => {
+    const descriptions = [
+      'Common Area',
+      'Student Room',
+      'Kitchen Facilities',
+      'Study Area',
+      'Modern Bedroom',
+      'Shared Kitchen',
+      'Study Space',
+      'Lounge Area',
+      'Bathroom Facilities'
+    ];
+    return descriptions[index] || `Interior View ${index + 1}`;
   };
 
   const handleContact = (type: 'phone' | 'email' | 'whatsapp') => {
@@ -241,17 +272,35 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
             </div>
           </TabsContent>
 
-          <TabsContent value="gallery">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TabsContent value="gallery" className="space-y-4">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold mb-2">Property Gallery</h3>
+              <p className="text-sm text-muted-foreground">Explore our modern facilities and comfortable living spaces</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {hostelImages.map((image, index) => (
-                <div key={index} className="aspect-video rounded-lg overflow-hidden">
+                <div key={index} className="aspect-video rounded-lg overflow-hidden relative group">
                   <img 
                     src={image} 
-                    alt={`${hostel.name} - Image ${index + 1}`}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    alt={`${hostel.name} - ${getImageDescription(index)}`}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                    onClick={() => window.open(image, '_blank')}
                   />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+                    <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-medium">
+                      Click to view full size
+                    </span>
+                  </div>
+                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
+                    {getImageDescription(index)}
+                  </div>
                 </div>
               ))}
+            </div>
+            
+            <div className="text-center text-sm text-muted-foreground mt-4">
+              <p>All images are representative of the hostel facilities and room types available</p>
             </div>
           </TabsContent>
 
