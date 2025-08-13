@@ -85,33 +85,21 @@ export default function AdminAuth() {
     const phone = formData.get('phone') as string;
     const location = formData.get('location') as string;
     
-    // Validate required fields
-    if (!email || !password || !fullName || !hostelName || !phone || !location) {
-      toast({
-        title: "Missing required fields",
-        description: "Please fill in all required fields before submitting.",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
-    
     const redirectUrl = `${window.location.origin}/admin/dashboard`;
     
-    // Build metadata for the trigger function
-    const metadata = {
-      full_name: fullName.trim(),
-      phone: phone.trim(),
-      hostel_name: hostelName.trim(),
-      hostel_location: location.trim(),
-      role: 'hostel_owner'
-    };
+    // Build metadata for the trigger function (only non-empty values)
+    const metadata: Record<string, string> = {};
+    if (fullName?.trim()) metadata.full_name = fullName.trim();
+    if (phone?.trim()) metadata.phone = phone.trim();
+    if (hostelName?.trim()) metadata.hostel_name = hostelName.trim();
+    if (location?.trim()) metadata.hostel_location = location.trim();
+    metadata.role = 'hostel_owner';
     
     try {
-      console.log('Attempting signup with metadata:', metadata);
+      console.log('Starting signup process with metadata:', metadata);
       
       const { error: signUpError, data: authData } = await supabase.auth.signUp({
-        email: email.trim(),
+        email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
@@ -123,38 +111,32 @@ export default function AdminAuth() {
         console.error('Signup error:', signUpError);
         toast({
           title: "Sign up failed",
-          description: signUpError.message || "Unable to create account. Please try again.",
+          description: signUpError.message,
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
 
-      if (authData?.user) {
-        console.log('User created successfully:', authData.user.id);
-        
-        // Wait a moment for the trigger to process
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
+      console.log('Signup successful:', authData);
+      
+      // Check if user was created successfully
+      if (authData.user) {
         toast({
-          title: "Registration successful!",
-          description: "Your hostel has been registered successfully. Please check your email to verify your account.",
+          title: "Hostel registration successful!",
+          description: "Please check your email to verify your account. Once verified, you can access your admin dashboard.",
         });
-        
-        // Clear the form
-        (e.target as HTMLFormElement).reset();
       } else {
         toast({
-          title: "Registration incomplete",
-          description: "Account created but additional setup may be needed. Please try signing in.",
-          variant: "destructive",
+          title: "Registration in progress",
+          description: "Please check your email for verification instructions.",
         });
       }
-    } catch (error: any) {
-      console.error('Unexpected error during signup:', error);
+    } catch (error) {
+      console.error('Network error during signup:', error);
       toast({
-        title: "Registration failed",
-        description: error?.message || "An unexpected error occurred. Please try again later.",
+        title: "Network error",
+        description: "Failed to connect to the server. Please check your internet connection and try again.",
         variant: "destructive",
       });
     }
