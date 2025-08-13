@@ -113,6 +113,7 @@ export type Database = {
           hostel_name: string
           id: string
           notes: string | null
+          password: string
           phone: string | null
           status: string
           updated_at: string
@@ -126,6 +127,7 @@ export type Database = {
           hostel_name: string
           id?: string
           notes?: string | null
+          password?: string
           phone?: string | null
           status?: string
           updated_at?: string
@@ -139,6 +141,7 @@ export type Database = {
           hostel_name?: string
           id?: string
           notes?: string | null
+          password?: string
           phone?: string | null
           status?: string
           updated_at?: string
