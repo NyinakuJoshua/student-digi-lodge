@@ -24,8 +24,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Handle sign out event
+        if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setSession(null);
+        }
         
         // Handle role update for hostel owner signup
         if (event === 'SIGNED_IN' && session?.user?.user_metadata?.role === 'hostel_owner') {
@@ -42,9 +50,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.warn('Session retrieval error:', error);
+        setSession(null);
+        setUser(null);
+      } else {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
       setLoading(false);
     });
 
@@ -104,17 +118,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Sign out failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+    try {
+      // Clear local state immediately to prevent UI lag
+      setUser(null);
+      setSession(null);
+      
+      // Attempt to sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      // Even if there's an error (like session not found), still show success
+      // because the local state is cleared and user appears signed out
+      if (error && error.message !== "Session not found") {
+        console.warn("Sign out warning:", error.message);
+        // Only show error for unexpected errors, not session not found
+        if (!error.message.includes("session") && !error.message.includes("not found")) {
+          toast({
+            title: "Sign out warning",
+            description: "Signed out locally, but there may have been a server issue.",
+            variant: "default",
+          });
+        } else {
+          // For session-related errors, show success since user is effectively signed out
+          toast({
+            title: "Signed out",
+            description: "You have been successfully signed out.",
+          });
+        }
+      } else {
+        toast({
+          title: "Signed out",
+          description: "You have been successfully signed out.",
+        });
+      }
+    } catch (err) {
+      // Clear state even if there's an unexpected error
+      setUser(null);
+      setSession(null);
+      
       toast({
         title: "Signed out",
-        description: "You have been successfully signed out.",
+        description: "You have been signed out locally.",
       });
     }
   };

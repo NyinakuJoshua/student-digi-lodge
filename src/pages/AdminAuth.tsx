@@ -54,8 +54,13 @@ export default function AdminAuth() {
       .single();
 
     if (profileError || profile?.role !== 'hostel_owner') {
-      // Sign out if not a hostel owner
-      await supabase.auth.signOut();
+      // Clear any existing session and sign out
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.warn('Sign out error during access denial:', error);
+      }
+      
       toast({
         title: "Access denied",
         description: "You must be a hostel owner to access the admin dashboard.",
