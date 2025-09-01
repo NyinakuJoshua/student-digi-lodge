@@ -75,37 +75,8 @@ const MapComponent: React.FC<MapComponentProps & { map: google.maps.Map | null; 
 };
 
 const GoogleMapWithApiKey: React.FC<GoogleMapProps> = (props) => {
-  const [apiKey, setApiKey] = useState<string>('');
+  const apiKey = 'AIzaSyAgQNLKIPWkKJiS5oQYZRnuael-uTvlwbI';
   const [map, setMap] = useState<google.maps.Map | null>(null);
-
-  if (!apiKey) {
-    return (
-      <Card className="p-6 space-y-4">
-        <div className="flex items-center space-x-2 text-muted-foreground">
-          <AlertCircle className="h-5 w-5" />
-          <span>Google Maps API Key Required</span>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          To display the map, please enter your Google Maps API key. You can get one from the Google Cloud Console.
-        </p>
-        <div className="flex space-x-2">
-          <Input
-            type="text"
-            placeholder="Enter your Google Maps API key..."
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="flex-1"
-          />
-          <Button onClick={() => setApiKey(apiKey)} disabled={!apiKey}>
-            Load Map
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Get your API key at: <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Cloud Console</a>
-        </p>
-      </Card>
-    );
-  }
 
   return (
     <div className={props.className}>

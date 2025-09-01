@@ -72,6 +72,7 @@ export function HostelDetailDialog({ hostel, open, onOpenChange }: HostelDetailD
   const [isBookingFormOpen, setIsBookingFormOpen] = useState(false);
 
   const hostelImages = [
+    ...((hostel as any).images || []), // Add uploaded images from database
     hostelInterior1, 
     hostelRoom1, 
     hostelKitchen1, 
