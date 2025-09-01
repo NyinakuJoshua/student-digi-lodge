@@ -31,26 +31,26 @@ export default function AdminAuth() {
     const password = formData.get('password') as string;
     
     // Sign in the user
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (signInError) {
+    if (signInError || !authData.user) {
       toast({
         title: "Sign in failed",
-        description: signInError.message,
+        description: signInError?.message || "Failed to sign in",
         variant: "destructive",
       });
       setLoading(false);
       return;
     }
 
-    // Check if user has hostel_owner role
+    // Check if user has hostel_owner role using the authenticated user's ID
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('user_id', authData.user.id)
       .single();
 
     if (profileError || profile?.role !== 'hostel_owner') {
