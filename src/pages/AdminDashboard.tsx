@@ -81,6 +81,7 @@ export default function AdminDashboard() {
     contact_phone: '',
   });
   const [uploadForm, setUploadForm] = useState({
+    name: '',
     price_per_semester: '',
     price_per_month: '',
     rooms_available: '',
@@ -92,6 +93,7 @@ export default function AdminDashboard() {
     description: '',
   });
   const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
+  const [hostelImageFiles, setHostelImageFiles] = useState<FileList | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -180,23 +182,53 @@ export default function AdminDashboard() {
   }, [user, toast]);
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status: newStatus })
-      .eq('id', bookingId);
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', bookingId);
 
-    if (error) {
-      toast({
-        title: "Error updating booking",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Booking updated",
-        description: `Booking status changed to ${newStatus}`,
-      });
-      
+      if (error) throw error;
+
+      // If booking is confirmed, send confirmation email
+      if (newStatus === 'confirmed') {
+        const booking = bookings.find(b => b.id === bookingId);
+        const hostel = hostels.find(h => h.id === booking?.hostel_id);
+        
+        if (booking && hostel) {
+          try {
+            await supabase.functions.invoke('send-booking-confirmation', {
+              body: {
+                studentEmail: booking.email,
+                studentName: booking.full_name,
+                hostelName: hostel.name,
+                checkInDate: booking.check_in_date,
+                checkOutDate: booking.check_out_date,
+                roomType: booking.room_type,
+                totalAmount: booking.total_amount || hostel.price_per_semester,
+                bookingId: booking.id
+              }
+            });
+            
+            toast({
+              title: "Booking Confirmed",
+              description: `Booking confirmed and confirmation email sent to ${booking.email}.`,
+            });
+          } catch (emailError) {
+            console.error('Error sending confirmation email:', emailError);
+            toast({
+              title: "Booking Confirmed",
+              description: "Booking confirmed successfully, but email sending failed.",
+            });
+          }
+        }
+      } else {
+        toast({
+          title: "Booking Updated",
+          description: `Booking ${newStatus} successfully.`,
+        });
+      }
+
       // Refresh bookings
       setBookings(prev => 
         prev.map(booking => 
@@ -221,6 +253,13 @@ export default function AdminDashboard() {
         pendingBookings: pending,
         confirmedBookings: confirmed,
       }));
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update booking status.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -241,6 +280,7 @@ export default function AdminDashboard() {
   const openUploadDialog = (hostel: Hostel) => {
     setSelectedHostel(hostel);
     setUploadForm({
+      name: hostel.name || '',
       price_per_semester: hostel.price_per_semester.toString(),
       price_per_month: ((hostel as any).price_per_month || '').toString(),
       rooms_available: hostel.rooms_available.toString(),
@@ -280,13 +320,37 @@ export default function AdminDashboard() {
     if (!selectedHostel) return;
 
     try {
-      // Handle file uploads if any
       let imageUrls: string[] = [];
+
+      // Upload new interior/room images if any
       if (uploadFiles && uploadFiles.length > 0) {
         for (let i = 0; i < uploadFiles.length; i++) {
           const file = uploadFiles[i];
           const fileExt = file.name.split('.').pop();
-          const fileName = `${selectedHostel.id}-${Date.now()}-${i}.${fileExt}`;
+          const fileName = `${selectedHostel.id}/interior-${Date.now()}-${i}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('hostel-images')
+            .upload(fileName, file);
+
+          if (uploadError) {
+            throw uploadError;
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('hostel-images')
+            .getPublicUrl(fileName);
+          
+          imageUrls.push(publicUrl);
+        }
+      }
+
+      // Upload hostel main pictures if any
+      if (hostelImageFiles && hostelImageFiles.length > 0) {
+        for (let i = 0; i < hostelImageFiles.length; i++) {
+          const file = hostelImageFiles[i];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${selectedHostel.id}/main-${Date.now()}-${i}.${fileExt}`;
           
           const { error: uploadError } = await supabase.storage
             .from('hostel-images')
@@ -306,6 +370,7 @@ export default function AdminDashboard() {
 
       // Prepare update data
       const updateData: any = {
+        name: uploadForm.name,
         price_per_semester: parseFloat(uploadForm.price_per_semester),
         rooms_available: parseInt(uploadForm.rooms_available),
         location: uploadForm.location,
@@ -347,6 +412,7 @@ export default function AdminDashboard() {
       toast({ title: 'Hostel updated', description: 'Your hostel information has been updated successfully.' });
       setUploadDialogOpen(false);
       setUploadFiles(null);
+      setHostelImageFiles(null);
     } catch (error: any) {
       toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
     }
@@ -663,27 +729,35 @@ export default function AdminDashboard() {
               <DialogHeader>
                 <DialogTitle>Update Hostel Information</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price_per_semester">Price per Semester (₵)</Label>
-                    <Input 
-                      id="price_per_semester" 
-                      type="number" 
-                      value={uploadForm.price_per_semester}
-                      onChange={(e) => setUploadForm({ ...uploadForm, price_per_semester: e.target.value })} 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="price_per_month">Price per Month (₵)</Label>
-                    <Input 
-                      id="price_per_month" 
-                      type="number" 
-                      value={uploadForm.price_per_month}
-                      onChange={(e) => setUploadForm({ ...uploadForm, price_per_month: e.target.value })} 
-                    />
-                  </div>
-                </div>
+               <div className="space-y-4">
+                 <div className="space-y-2">
+                   <Label htmlFor="hostel_name">Hostel Name</Label>
+                   <Input 
+                     id="hostel_name" 
+                     value={uploadForm.name}
+                     onChange={(e) => setUploadForm({ ...uploadForm, name: e.target.value })} 
+                   />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <Label htmlFor="price_per_semester">Price per Semester (₵)</Label>
+                     <Input 
+                       id="price_per_semester" 
+                       type="number" 
+                       value={uploadForm.price_per_semester}
+                       onChange={(e) => setUploadForm({ ...uploadForm, price_per_semester: e.target.value })} 
+                     />
+                   </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="price_per_month">Price per Month (₵)</Label>
+                     <Input 
+                       id="price_per_month" 
+                       type="number" 
+                       value={uploadForm.price_per_month}
+                       onChange={(e) => setUploadForm({ ...uploadForm, price_per_month: e.target.value })} 
+                     />
+                   </div>
+                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -754,19 +828,33 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="images">Upload New Images</Label>
-                  <Input 
-                    id="images" 
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => setUploadFiles(e.target.files)} 
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Select multiple images to add to your hostel gallery
-                  </p>
-                </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="images">Upload Interior/Room Images</Label>
+                   <Input 
+                     id="images" 
+                     type="file"
+                     multiple
+                     accept="image/*"
+                     onChange={(e) => setUploadFiles(e.target.files)} 
+                   />
+                   <p className="text-sm text-muted-foreground">
+                     Select multiple interior/room images to add to your hostel gallery
+                   </p>
+                 </div>
+
+                 <div className="space-y-2">
+                   <Label htmlFor="hostel_images">Upload Hostel Main Pictures</Label>
+                   <Input 
+                     id="hostel_images" 
+                     type="file"
+                     multiple
+                     accept="image/*"
+                     onChange={(e) => setHostelImageFiles(e.target.files)} 
+                   />
+                   <p className="text-sm text-muted-foreground">
+                     Select main hostel exterior/building images that will display on the hostel card
+                   </p>
+                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
