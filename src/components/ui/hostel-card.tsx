@@ -30,13 +30,25 @@ interface HostelCardProps {
   contact_email?: string;
   contact_whatsapp?: string;
   isFavorited?: boolean;
+  main_picture?: string;
+  images?: string[];
 }
 
 export const HostelCard = (hostel: HostelCardProps) => {
   const [favorited, setFavorited] = useState(hostel.isFavorited || false);
   const [showDetails, setShowDetails] = useState(false);
 
-  const getHostelImage = (hostelName: string) => {
+  const getHostelImage = (hostelName: string, mainPicture?: string, images?: string[]) => {
+    // Prioritize uploaded main picture over static images
+    if (mainPicture) {
+      return mainPicture;
+    }
+    
+    // Check if there are uploaded images and use the first one as main picture
+    if (images && images.length > 0) {
+      return images[0];
+    }
+    
     switch (hostelName) {
       case 'Campus View Residence': return campusViewExterior;
       case 'AAMUSTED Student Lodge': return studentLodgeExterior;
@@ -73,7 +85,7 @@ export const HostelCard = (hostel: HostelCardProps) => {
         {/* Image Section */}
         <div className="relative">
           <img 
-            src={getHostelImage(hostel.name)} 
+            src={getHostelImage(hostel.name, hostel.main_picture, hostel.images)} 
             alt={hostel.name}
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           />
